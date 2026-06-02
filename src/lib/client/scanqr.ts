@@ -7,10 +7,10 @@ export const parseQRLocation = (rawData: string) => {
   try {
     let jsonString = rawData;
 
-    if (rawData.startsWith("http")) {
-      const url = new URL(rawData);
-      jsonString = url.searchParams.get("qr") || rawData;
-    }
+	if (rawData.startsWith("http://") || rawData.startsWith("https://")) {
+  		const url = new URL(rawData);
+		jsonString = url.searchParams.get("qr") || rawData;
+	}
 
     const data = JSON.parse(jsonString);
 
