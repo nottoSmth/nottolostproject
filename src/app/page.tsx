@@ -1,7 +1,10 @@
-import Image from "next/image";
+import MapComponent from "@/lib/client/components/map";
 
-export default function Home() {
+export default function Page() {
   return (
-    <div>Test</div>
+    <div>
+      <h1>My Map</h1>
+      <MapComponent />
+    </div>
   );
 }
