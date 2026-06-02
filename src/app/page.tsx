@@ -6,10 +6,21 @@ import QRScanner from "@/lib/client/components/qrscaner";
 
 export default function Page() {
   const [isScanning, setIsScanning] = useState(false);
-  const [lastScan, setLastScan] = useState();
+  const [lastScan, setLastScan] = useState("");
+
+  const handleScan = (data: string) => {
+    setLastScan(data);
+    setIsScanning(false);
+  }
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-pink-50 font-sans">
+      {isScanning && (
+        <QRScanner 
+          onScan={handleScan} 
+          onClose={() => setIsScanning(false)} 
+        />
+      )}
       <header className="bg-white shadow-sm px-6 py-4 z-20 shrink-0">
         <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
           แผนที่เตรียมอุดมฯ
@@ -33,7 +44,9 @@ export default function Page() {
 
       {/* Always bottom, no scroll */}
       <footer className="shrink-0 bg-white px-6 py-6 rounded-t-3xl shadow-xl">
-        <button className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 rounded-2xl transition-all shadow-lg active:scale-[0.98] text-lg">
+        <button
+        onClick={() => setIsScanning(true)}
+        className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 rounded-2xl transition-all shadow-lg active:scale-[0.98] text-lg">
           สแกน QR
         </button>
       </footer>
