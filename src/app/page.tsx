@@ -8,10 +8,23 @@ export default function Page() {
   const [isScanning, setIsScanning] = useState(false);
   const [lastScan, setLastScan] = useState("");
 
+  const qrDatabase: Record<string, { x: number, y: number, name: string }> = {
+    "booth-art": { x: -15.5, y: 10.0, name: "ตึกศิลปะ" },
+    "booth-50": { x: 25.0, y: -5.5, name: "ตึก 50 ปี" },
+  };
+
   const handleScan = (data: string) => {
-    setLastScan(data);
     setIsScanning(false);
-  }
+    setLastScan(data);
+
+    const location = qrDatabase[data];
+
+    if (location) {
+      alert(`รีเซ็ตตำแหน่งไปที่: ${location.name}\nพิกัด X: ${location.x}, Y: ${location.y}`);
+    } else {
+      alert(`รูปแบบ QR ไม่ถูกต้อง หรือไม่พบในฐานข้อมูล: ${data}`);
+    }
+  };
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-pink-50 font-sans">
