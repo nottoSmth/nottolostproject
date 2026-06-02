@@ -1,38 +1,36 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import MapComponent from "@/lib/client/components/map";
 import QRScanner from "@/lib/client/components/qrscaner";
+import { parseQRLocation } from "@/lib/client/scanqr";
 
-export default function Page() {
+function MainContent() {
+  const searchParams = useSearchParams();
   const [isScanning, setIsScanning] = useState(false);
-  const [lastScan, setLastScan] = useState("");
+  // const [lastScan, setLastScan] = useState("");
 
-  const qrDatabase: Record<string, { x: number, y: number, name: string }> = {
-    "booth-art": { x: -15.5, y: 10.0, name: "ตึกศิลปะ" },
-    "booth-50": { x: 25.0, y: -5.5, name: "ตึก 50 ปี" },
-  };
-
-  const handleScan = (data: string) => {
-    setIsScanning(false);
-    setLastScan(data);
-
-    const location = qrDatabase[data];
-
-    if (location) {
-      alert(`รีเซ็ตตำแหน่งไปที่: ${location.name}\nพิกัด X: ${location.x}, Y: ${location.y}`);
-    } else {
-      alert(`รูปแบบ QR ไม่ถูกต้อง หรือไม่พบในฐานข้อมูล: ${data}`);
+  const processLocation = (data : string) => {
+    const result = parseQRLocation(data);
+    if(result.success && result.point) {
+      //setLastScan(result.point.name)
+      alert(`Current location : ${result.point.name}\n X: ${result.point.x}, Y: ${result.point.y}`)
     }
-  };
+    else{
+      alert(`Qr not found`)
+    }
+  }
+
+  useEffect(() => {
+    const qrParam = searchParams.get("qr");
+    if (qrParam) processLocation(qrParam);
+  }, [searchParams])
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-pink-50 font-sans">
       {isScanning && (
-        <QRScanner 
-          onScan={handleScan} 
-          onClose={() => setIsScanning(false)} 
-        />
+        <QRScanner onScan={(data) => { setIsScanning(false); processLocation(data); }} onClose={() => setIsScanning(false)} />
       )}
       <header className="bg-white shadow-sm px-6 py-4 z-20 shrink-0">
         <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
@@ -64,5 +62,13 @@ export default function Page() {
         </button>
       </footer>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center text-pink-500 font-bold">กำลังโหลด...</div>}>
+      <MainContent />
+    </Suspense>
   );
 }
