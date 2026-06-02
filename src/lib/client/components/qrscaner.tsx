@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Html5Qrcode } from "html5-qrcode";
+import { BrowserQRCodeReader } from "@zxing/browser";
 
 interface QRScannerProps {
   onScan: (data: string) => void;
@@ -9,48 +9,71 @@ interface QRScannerProps {
 }
 
 export default function QRScanner({ onScan, onClose }: QRScannerProps) {
-  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const readerRef = useRef<BrowserQRCodeReader | null>(null);
+  const controlsRef = useRef<any>(null);
 
   useEffect(() => {
-    scannerRef.current = new Html5Qrcode("qr-video-container");
+    const startCamera = async () => {
+      readerRef.current = new BrowserQRCodeReader();
 
-    scannerRef.current.start(
-      { facingMode: "environment" },
-      { fps: 10 },
-      (decodedText) => {
-        if (scannerRef.current) {
-          scannerRef.current.stop().then(() => onScan(decodedText));
-        }
-      },
-      () => {}
-    ).catch((err) => {
-      console.error(err);
-    });
-
-    return () => {
-      if (scannerRef.current?.isScanning) {
-        scannerRef.current.stop().catch(() => {});
+      try {
+        controlsRef.current =
+          await readerRef.current.decodeFromVideoDevice(
+            undefined,
+            videoRef.current!,
+            (result, err) => {
+              if (result) {
+                // ✅ stop scanning
+                controlsRef.current?.stop();
+                onScan(result.getText());
+              }
+            }
+          );
+      } catch (err) {
+        console.error("Camera error:", err);
       }
     };
-  }, [onScan]);
 
+    startCamera();
+
+    return () => {
+      controlsRef.current?.stop();
+    };
+  }, [onScan]);
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center">
-      <div className="relative w-full h-full max-w-md overflow-hidden flex items-center justify-center">
-        <div id="qr-video-container" className="w-full h-full object-cover"></div>
-        
+    <div className="fixed inset-0 z-50  flex items-center justify-center overflow-hidden">
+      {/* Square camera container */}
+      <div className="relative w-[80vw] max-w-sm aspect-square overflow-hidden rounded-2xl">
+
+        {/* REAL camera */}
+        <video
+          ref={videoRef}
+          className="absolute inset-0 w-full h-full object-cover"
+          autoPlay
+          playsInline
+          muted
+        />
+
+        {/* Overlay (perfectly aligned now) */}
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
-          <div className="w-64 h-64 border-2 border-pink-500 rounded-2xl shadow-[0_0_0_9999px_rgba(0,0,0,0.7)] relative">
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-xl -mt-0.5 -ml-0.5"></div>
-            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-xl -mt-0.5 -mr-0.5"></div>
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-xl -mb-0.5 -ml-0.5"></div>
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-xl -mb-0.5 -mr-0.5"></div>
+          <div className="w-1/1 h-1/1 border-2 border-pink-500 rounded-2xl relative">
+            <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-white rounded-tl-xl"></div>
+            <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-white rounded-tr-xl"></div>
+            <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-white rounded-bl-xl"></div>
+            <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-white rounded-br-xl"></div>
           </div>
         </div>
       </div>
 
-      <button 
-        onClick={onClose}
+      {/* Dark outside area (optional but nice) */}
+
+      {/* Close button */}
+      <button
+        onClick={() => {
+          controlsRef.current?.stop();
+          onClose();
+        }}
         className="absolute bottom-10 z-20 px-8 py-3 bg-white/20 backdrop-blur-md text-white font-bold rounded-full border border-white/40 active:bg-white/30"
       >
         ยกเลิกการสแกน
