@@ -16,7 +16,7 @@ export default function MapComponent() {
           <img
             src="/map.svg"
             alt="School Map"
-            className="w-full h-full object-contain pointer-events-none select-none"
+            className="w-full h-full object-contain pointer-events-none select-none will-change-transform [backface-visibility:hidden] [-webkit-transform:translateZ(0)]"
           />
         </TransformComponent>
       </TransformWrapper>
