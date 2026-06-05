@@ -11,16 +11,17 @@ function MainContent() {
   const [isScanning, setIsScanning] = useState(false);
   // const [lastScan, setLastScan] = useState("");
 
-  const processLocation = (data : string) => {
-    const result = parseQRLocation(data);
-    if(result.success && result.point) {
-      //setLastScan(result.point.name)
-      alert(`Current location : ${result.point.name}\n X: ${result.point.x}, Y: ${result.point.y}`)
+  const processLocation = async (data: string) => {
+    const result = await parseQRLocation(data);
+
+    if (result.success && result.point) {
+      alert(
+        `Current location : ${result.point.name}\n X: ${result.point.x}, Y: ${result.point.y}`
+      );
+    } else {
+      alert(`Qr not found`);
     }
-    else{
-      alert(`Qr not found`)
-    }
-  }
+  };
 
   useEffect(() => {
     const qrParam = searchParams.get("qr");
@@ -56,8 +57,8 @@ function MainContent() {
       {/* Always bottom, no scroll */}
       <footer className="shrink-0 bg-white px-6 py-6 rounded-t-3xl shadow-xl">
         <button
-        onClick={() => setIsScanning(true)}
-        className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 rounded-2xl transition-all shadow-lg active:scale-[0.98] text-lg">
+          onClick={() => setIsScanning(true)}
+          className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 rounded-2xl transition-all shadow-lg active:scale-[0.98] text-lg">
           สแกน QR
         </button>
       </footer>
