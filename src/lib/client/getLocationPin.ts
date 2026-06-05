@@ -1,30 +1,48 @@
+
+import { collection, getDocs } from "firebase/firestore";
+import { singletonFirestorePublic } from "@/lib/client/singleton/client.firebasePublic";
+
+const CACHE_KEY = "building-pin-cache";
+const CACHE_TIME_KEY = "building-pin-cache-time";
+
 type BuildingPin = {
-	id: string;
-	lat: number;
-	lng: number;
+  id: string;
+  lat: number;
+  lng: number;
 };
 
 export async function getBuildingPins(): Promise<BuildingPin[]> {
-	return [
-		{
-			id: "80",
-			lat: 13.740626,
-			lng: 100.53252,
-		},
-		{
-			id: "60",
-			lat: 13.741834,
-			lng: 100.532429,
-		},
-		{
-			id: "dm_rung",
-			lat: 13.741725,
-			lng: 100.535053,
-		},
-		{
-			id: "dm_bua",
-			lat: 13.740554,
-			lng: 100.53068,
-		}
-	];
+  const now = Date.now();
+
+  // 1. Check cache
+  const cached = localStorage.getItem(CACHE_KEY);
+  const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+  console.log("cachedTime")
+  if (cached && cachedTime) {
+      const age = now - Number(cachedTime);
+      
+      if (age < 1000*60*60) { // 1hr
+        return JSON.parse(cached);
+    }
+  }
+  
+  // 2. Fetch from Firestore
+  const db = singletonFirestorePublic;
+  const snapshot = await getDocs(collection(db, "building-pin"));
+  
+  const result: BuildingPin[] = snapshot.docs.map((doc) => {
+    const data = doc.data();
+    
+    return {
+      id: doc.id,
+      lat: data.gps.latitude,
+      lng: data.gps.longitude,
+    };
+  });
+
+  // 3. Save cache
+  localStorage.setItem(CACHE_KEY, JSON.stringify(result));
+  localStorage.setItem(CACHE_TIME_KEY, now.toString());
+
+  return result;
 }
