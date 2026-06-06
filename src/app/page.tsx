@@ -24,7 +24,15 @@ const convertGPSToMapXY = (lat: number, lng: number, name: string): LocationPoin
   const mapX = P1.x + (lng - P1.lng) * ((P2.x - P1.x) / (P2.lng - P1.lng));
   const mapY = P1.y + (lat - P1.lat) * ((P2.y - P1.y) / (P2.lat - P1.lat));
   return { x: mapX, y: mapY, name };
-};
+}
+
+const dummyRoute: LocationPoint[] = [
+    { x: -200, y: 150, name: "จุดเริ่มต้น" },
+    { x: -100, y: 150, name: "เลี้ยวขวา" },
+    { x: -100, y: 50, name: "เดินตรงไป" },
+    { x: 50, y: 50, name: "เลี้ยวซ้าย" },
+    { x: 50, y: -50, name: "ถึงตึก 80 ปี" }
+  ];;
 
 function MainContent() {
   const searchParams = useSearchParams();
@@ -82,7 +90,7 @@ function MainContent() {
 
   useEffect(() => {
     if (gps.latitude && gps.longitude && gps.accuracy) {
-      if (gps.accuracy <= 10) {
+      if (gps.accuracy <= 50) {
         setCurrentPos(convertGPSToMapXY(gps.latitude, gps.longitude, "📍 ตำแหน่งของคุณ"));
       }
     }
@@ -104,7 +112,11 @@ function MainContent() {
 
       {/* Fill remaining space, no overflow */}
       <div className="flex-1 relative overflow-hidden flex items-center justify-center">
-        <MapComponent currentPos={currentPos} allLocations={allPins}/>
+        <MapComponent
+          currentPos={currentPos}
+          allLocations={allPins}
+          routePoints={dummyRoute}
+        />
 
         <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-md border border-slate-100 z-10">
           <span className="text-sm font-semibold text-pink-600 flex items-center gap-2">

@@ -11,9 +11,10 @@ interface LocationPoint {
 interface MapComponentProps {
   currentPos: LocationPoint | null;
   allLocations?: LocationPoint[];
+  routePoints?: LocationPoint[];
 }
 
-export default function MapComponent({ currentPos, allLocations = [] }: MapComponentProps) {
+export default function MapComponent({ currentPos, allLocations = [], routePoints = [] }: MapComponentProps) {
   const mapWidth = 1351;
   const mapHeight = 877;
   const pixelsPerMeter = 1.75;
@@ -23,6 +24,8 @@ export default function MapComponent({ currentPos, allLocations = [] }: MapCompo
 
   const getPixelX = (mathX: number) => originX + (mathX * pixelsPerMeter);
   const getPixelY = (mathY: number) => originY - (mathY * pixelsPerMeter);
+
+  const polylinePoints = routePoints.map((p) => `${getPixelX(p.x)},${getPixelY(p.y)}`).join(" ");
 
   // For debug only
   const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
@@ -62,6 +65,34 @@ export default function MapComponent({ currentPos, allLocations = [] }: MapCompo
             draggable={false}
           />
 
+          <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
+            {routePoints.length > 1 && (
+              <>
+                {/* เส้นขอบสีขาว (Outline) ให้เส้นดูมีมิติ */}
+                <polyline
+                  points={polylinePoints}
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="12"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="opacity-70"
+                />
+                {/* เส้นสีชมพูหลัก (Main Path) */}
+                <polyline
+                  points={polylinePoints}
+                  fill="none"
+                  stroke="#ec4899" // สี pink-500
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="drop-shadow-lg"
+                  strokeDasharray="15, 10" // ทำให้เป็นเส้นประ (ถ้าอยากได้เส้นทึบให้ลบบรรทัดนี้ออก)
+                />
+              </>
+            )}
+          </svg>
+
           {allLocations.map((loc, idx) => (
             <div
               key={idx}
@@ -78,7 +109,7 @@ export default function MapComponent({ currentPos, allLocations = [] }: MapCompo
           ))}
           {currentPos && (
             <div
-              className="absolute bg-pink-600 text-white font-bold px-3 py-2 rounded-lg shadow-xl whitespace-nowrap flex flex-col items-center transform -translate-x-1/2 -translate-y-full z-10"
+              className="absolute bg-pink-600 text-white font-bold px-3 py-2 rounded-lg shadow-xl whitespace-nowrap flex flex-col items-center transform -translate-x-1/2 -translate-y-full z-20 transition-all duration-1000 ease-linear"
               style={{
                 left: `${getPixelX(currentPos.x)}px`,
                 top: `${getPixelY(currentPos.y)}px`,
