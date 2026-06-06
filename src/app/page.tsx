@@ -6,6 +6,7 @@ import MapComponent from "@/lib/client/components/map";
 import QRScanner from "@/lib/client/components/qrscaner";
 import { getGPS } from "@/lib/client/getGpsLocation";
 import { getBuildingPins } from "@/lib/client/getLocationPin";
+import { getCompass } from "@/lib/client/getCompass";
 
 interface LocationPoint {
   x: number;
@@ -37,9 +38,15 @@ const dummyRoute: LocationPoint[] = [
 function MainContent() {
   const searchParams = useSearchParams();
   const gps = getGPS();
+  const compass = getCompass();
 
   const [isScanning, setIsScanning] = useState(false);
-  const [currentPos, setCurrentPos] = useState<LocationPoint | null>(null)
+  // const [currentPos, setCurrentPos] = useState<LocationPoint | null>(null)
+  const [currentPos, setCurrentPos] = useState<LocationPoint | null>({
+    x: 0,
+    y: 0,
+    name: "dm_compass"
+  })
 
   const [allPins, setAllPins] = useState<LocationPoint[]>([])
 
@@ -88,13 +95,14 @@ function MainContent() {
     }
   }, [searchParams, allPins]);
 
-  useEffect(() => {
-    if (gps.latitude && gps.longitude && gps.accuracy) {
-      if (gps.accuracy <= 50) {
-        setCurrentPos(convertGPSToMapXY(gps.latitude, gps.longitude, "📍 ตำแหน่งของคุณ"));
-      }
-    }
-  }, [gps.latitude, gps.longitude, gps.accuracy]);
+  // comment for debug compass
+  // useEffect(() => {
+  //   if (gps.latitude && gps.longitude && gps.accuracy) {
+  //     if (gps.accuracy <= 50) {
+  //       setCurrentPos(convertGPSToMapXY(gps.latitude, gps.longitude, "ตำแหน่งของคุณ"));
+  //     }
+  //   }
+  // }, [gps.latitude, gps.longitude, gps.accuracy]);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-pink-50 font-sans">
@@ -108,6 +116,23 @@ function MainContent() {
         <p className="text-sm text-slate-500 mt-1">
           ระบบนำทาง
         </p>
+        {/* For ios */}
+        {compass.heading === null && (
+          <button 
+            onClick={compass.requestPermission}
+            className="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow transition-all active:scale-95"
+          >
+            เปิดเข็มทิศ
+          </button>
+        )}
+        {compass.heading !== null && (
+          <div className="bg-blue-50 px-3 py-1 rounded-lg border border-blue-200 text-right">
+            <span className="text-[10px] font-bold text-blue-700 block">องศาเข็มทิศ</span>
+            <span className="text-sm font-mono font-black text-blue-600">
+              {compass.heading.toFixed(0)}°
+            </span>
+          </div>
+        )}
       </header>
 
       {/* Fill remaining space, no overflow */}
@@ -116,6 +141,7 @@ function MainContent() {
           currentPos={currentPos}
           allLocations={allPins}
           routePoints={dummyRoute}
+          heading={compass.heading}
         />
 
         <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-md border border-slate-100 z-10">

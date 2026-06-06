@@ -12,9 +12,11 @@ interface MapComponentProps {
   currentPos: LocationPoint | null;
   allLocations?: LocationPoint[];
   routePoints?: LocationPoint[];
+  heading: number | null;
 }
 
-export default function MapComponent({ currentPos, allLocations = [], routePoints = [] }: MapComponentProps) {
+export default function MapComponent({ currentPos, allLocations = [], routePoints = [], heading }: MapComponentProps) {
+  console.log("=== Debug All Locations ===", allLocations);
   const mapWidth = 1351;
   const mapHeight = 877;
   const pixelsPerMeter = 1.75;
@@ -61,7 +63,6 @@ export default function MapComponent({ currentPos, allLocations = [], routePoint
             // className="w-full h-full object-contain pointer-events-none select-none will-change-transform"
             className="w-full h-full object-cover pointer-events-auto select-none cursor-crosshair"
             // for debug only
-            onClick={handleImageClick}
             draggable={false}
           />
 
@@ -96,7 +97,7 @@ export default function MapComponent({ currentPos, allLocations = [], routePoint
           {allLocations.map((loc, idx) => (
             <div
               key={idx}
-              className="absolute w-4 h-4 bg-slate-400 rounded-full border-2 border-white transform -translate-x-1/2 -translate-y-1/2 shadow-sm"
+              className="absolute w-4 h-4 bg-slate-400 rounded-full border-2 border-white transform -translate-x-1/2 -translate-y-1/2 shadow-sm z-20"
               style={{
                 left: `${getPixelX(loc.x)}px`,
                 top: `${getPixelY(loc.y)}px`,
@@ -109,17 +110,29 @@ export default function MapComponent({ currentPos, allLocations = [], routePoint
           ))}
           {currentPos && (
             <div
-              className="absolute bg-pink-600 text-white font-bold px-3 py-2 rounded-lg shadow-xl whitespace-nowrap flex flex-col items-center transform -translate-x-1/2 -translate-y-full z-20 transition-all duration-1000 ease-linear"
+              className="absolute w-8 h-8 z-30 transition-all duration-1000 ease-linear"
               style={{
                 left: `${getPixelX(currentPos.x)}px`,
                 top: `${getPixelY(currentPos.y)}px`,
+                transform: "translate(-50%, -50%)"
               }}
             >
-              <span className="text-sm">{currentPos.name}</span>
+              {heading !== null && (
+                <div
+                  className="absolute top-1/2 left-1/2 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-b-[50px] border-b-blue-400/40"
+                  style={{
+                    transform: `translate(-50%, -100%) rotate(${heading}deg)`,
+                    transformOrigin: "bottom center",
+                  }}
+                />
+              )}
+              <div className="absolute top-1/2 left-1/2 w-4 h-4 bg-blue-600 rounded-full border-2 border-white -translate-x-1/2 -translate-y-1/2 shadow-md z-30" />
+              <div className="absolute top-1/2 left-1/2 w-4 h-4 bg-blue-400 rounded-full -translate-x-1/2 -translate-y-1/2 animate-ping opacity-70 z-20" />
+              {/* <span className="text-sm">{currentPos.name}</span>
               <span className="text-[10px] text-pink-200 mt-0.5 tracking-wider font-mono">
                 X:{currentPos.x.toFixed(1)} Y:{currentPos.y.toFixed(1)}
               </span>
-              <div className="w-3 h-3 bg-pink-600 rotate-45 -mb-3 mt-1"></div>
+              <div className="w-3 h-3 bg-pink-600 rotate-45 -mb-3 mt-1"></div> */}
             </div>
           )}
         </div>
